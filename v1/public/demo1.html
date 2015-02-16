@@ -113,8 +113,6 @@
       }
 
       function main() {
-        var username = 'krob';
-        var limit = 5;
         searchTweets('kanye')
           .then(function(response) { return response.statuses; })
           .then(render);
