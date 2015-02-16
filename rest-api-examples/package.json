@@ -1,0 +1,11 @@
+{
+  "name": "rest-api-examples",
+  "description": "Examples of the Twitter REST API",
+  "version": "0.1.0",
+  "dependencies": {
+    "express": "3.4.4",
+    "moment": "^2.9.0",
+    "morgan": "^1.5.1",
+    "twit": "1.1.15"
+  }
+}

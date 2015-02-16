@@ -1,2 +1,2 @@
-# drexel-ui-programming
-Materials for Drexel UI programming classes
+# Drexel UI programming class
+Materials for UI programming class

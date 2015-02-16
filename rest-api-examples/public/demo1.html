@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Drexel UI programming projects</title>
+
+    <!-- Meta-information about the page for browsers -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+
+    <!-- Links to stylesheets and images on the internet that the browser
+    will request and use in showing this HTML page. -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/twitter-demos.css" type="text/css">
+    <link rel="shortcut icon" href="//abs.twimg.com/favicons/favicon.ico" type="image/x-icon">
+
+    <!-- Scripts that are on our site or elsewhere on the internet.  These are downloaded and run as part of this HTML page. -->
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+  </head>
+  <body>
+
+    <!-- HTML that is served directly to the browser.  This is static -->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <h1 class="navbar-text">Drexel UI programming projects</h1>
+    </nav>
+    <div class="container content">
+    </div>
+
+
+    <!-- A template can be compiled into a function that takes input data
+    and renders it as a string of HTML.  The browser will ignore this, but
+    our JavaScript code will use it.  -->
+    <script type="text/template" id="tweet-template">
+      <blockquote class="twitter-tweet" align="center">
+        <p><%= tweet.text %></p>
+        <small>
+          @<%= user.screen_name %>
+          <a href="https://twitter.com/<%= user.screen_name %>/status/<%= tweet.id_str %>">
+          <%= tweet.created_at %>
+          </a>
+        </small>
+      </blockquote>
+    </script>
+
+    <!-- A script that is inline in the HTML page.  This code will run as
+    soon as the browser gets here and parses it. -->
+    <script>
+      // Wraps up querying the server-side proxy, which
+      // is for working around CORS restrictions in the browser.
+      function twitterApi(method, endpoint, params) {
+        return $.ajax({
+          url: '/proxy',
+          data: {
+            method: method,
+            endpoint: endpoint,
+            params: params
+          }
+        })
+      };
+
+      function friendIds(username, limit) {
+        return twitterApi('get', 'friends/ids', {
+          screen_name: 'krob',
+          count: limit
+        });
+      }
+
+      function usersLookup(userIds) {
+        return twitterApi('get', 'users/lookup', {
+          user_id: userIds.join()
+        });
+      }
+
+      function searchTweets(query) {
+        return twitterApi('get', 'search/tweets', {
+          q: query,
+          result_type: 'popular'
+        });
+      }
+
+      // void
+      function render(tweets) {
+        var $el = $('.content');
+
+        renderHtml($el, tweets);
+        decorateTweets();
+      }
+
+      // void
+      function renderHtml($el, tweets) {
+        var tweetTemplateText = $('#tweet-template').text();
+        var compiledTweetTemplate = _.template(tweetTemplateText);
+        $el.html(tweets.map(function(tweet) {
+          return compiledTweetTemplate({
+            user: tweet.user,
+            tweet: tweet
+          });
+        }));
+      }
+
+      // This works in conjunction with `loadWidgets` - use this to generate
+      // HTML, and `loadWidgets` will turn them into full widgets.
+      // This could work, but we can also use a templating language to this.
+      // It will often read better, and nudge us to use safe practices like
+      // escaping data before rendering it on the page.
+      function embeddedTweetHtml(user, tweet) {
+        return '<blockquote class="twitter-tweet" align="center"><p>' + tweet.text + '</p><small>@' + user.screen_name + ' <a href="https://twitter.com/' + user.screen_name + '/status/' + tweet.id_str + '">' + tweet.created_at + '</a></small></blockquote>';
+      }
+
+      // void
+      function decorateTweets() {
+        twttr.widgets.load();
+      }
+
+      function main() {
+        var username = 'krob';
+        var limit = 5;
+        searchTweets('kanye')
+          .then(function(response) { return response.statuses; })
+          .then(render);
+      };
+
+      // This is where it actually starts running, after the browser finishes
+      // loading the HTML document.
+      $(document).ready(main);
+    </script>
+
+    <!-- Another script that we want the browser to download and run;
+    this one is tagged with `async` so the browser knows it's lower priority -->
+    <script async src="//platform.twitter.com/widgets.js"></script>
+  </body>
+</html>
