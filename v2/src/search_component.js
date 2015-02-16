@@ -1,47 +1,22 @@
 var _ = require('lodash');
+var $ = require('jquery');
+var TwitterApi = require('./twitter_api');
 var merge = function(prev, next) {
   return _.extend({}, prev, next);
 };
 
-// Wraps up querying the server-side proxy, which
-// is for working around CORS restrictions in the browser.
-function twitterApi(method, endpoint, params) {
-  return $.ajax({
-    url: '/proxy',
-    data: {
-      method: method,
-      endpoint: endpoint,
-      params: params
-    }
-  })
-};
 
-function friendIds(username, limit) {
-  return twitterApi('get', 'friends/ids', {
-    screen_name: 'krob',
-    count: limit
-  });
-}
-
-function usersLookup(userIds) {
-  return twitterApi('get', 'users/lookup', {
-    user_id: userIds.join()
-  });
-}
-
-function searchTweets(query) {
-  return twitterApi('get', 'search/tweets', {
-    q: query,
-    result_type: 'popular'
-  });
-}
-
-
-
+// This is a minimal component class.  It's similar to what you
+// would find in a React component or Backbone.View.
+//
+// This is the constructor, and the methods are defined below.
+// While JavaScript has more flexibility than Java, this is essentially
+// the same as a Java class.
 var SearchComponent = function(node) {
   this.node = node;
   this.state = this.initialState();
 };
+
 
 // `state` and `render` are the important pieces here.
 //
@@ -54,6 +29,7 @@ SearchComponent.prototype = {
   initialState: function() {
     return {
       searchText: 'kanye',
+      isLoading: false,
       tweets: []
     };
   },
@@ -91,12 +67,17 @@ SearchComponent.prototype = {
   // Perform a server request and set up the handler when the response comes
   // back.
   searchAndUpdateState: function() {
-    searchTweets(this.state.searchText).then(this.onServerResponse.bind(this));
+    this.setState({ isLoading: true });
+    TwitterApi.searchTweets(this.state.searchText)
+      .then(this.onServerResponse.bind(this));
   },
 
   // Handle the server response.
   onServerResponse: function(response) {
-    this.setState({ tweets: response.statuses });
+    this.setState({
+      isLoading: false,
+      tweets: response.statuses
+    });
   },
 
   // This is the main function taking the representation of `state`
@@ -106,6 +87,7 @@ SearchComponent.prototype = {
     var htmlPieces = [
       '<input class="search" type="text" value="' + this.state.searchText + '"/>',
       '<button class="search">search</button>',
+      this.renderLoadingState(),
       this.renderTweetsHtml(this.state.tweets)
     ];
     this.node.innerHTML = htmlPieces.join('');
@@ -113,6 +95,11 @@ SearchComponent.prototype = {
     // Apply some decoration to make Tweets more interactive.
     // This is idempotent.
     this.decorateTweets();
+  },
+
+  renderLoadingState: function() {
+    return (this.state.isLoading)
+      ? '<div class="loading">Here they come...</div>' : '';
   },
 
   // This reaches out to the template stored on the DOM, which isn't ideal.

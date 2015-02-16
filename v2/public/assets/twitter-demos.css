@@ -36,12 +36,6 @@ body {
 .navbar-default .container {
   padding: 0 30px;
 }
-
-.twitter-follow-button {
-  font-size: 0;
-  margin: 11px 0 11px 11px;
-}
-
 .content, .map {
   position: absolute;
   top: 50px;
@@ -54,51 +48,6 @@ body {
   padding-top: 30px;
 }
 
-.camera {
-  margin: 50px auto;
-  text-align: center;
-}
-
-.center {
-  text-align: center;
-}
-
-.disc {
-  margin: 40px auto;
-  width: 400px;
-  height: 400px;
-  font-family: 'Monaco', monospace;
-  text-align: center;
-  color: #55acee;
-  border: 1px solid #e7e7e7;
-  background: #f8f8f8;
-  border-radius: 50%;
-}
-.disc div {
-  line-height: 400px;
-  font-size: 100px;
-}
-.disc p {
-  margin-top: -105px;
-  font-size: 20px;
-}
-
-.badge {
-  float: right;
-  margin-left: 5px;
-}
-
-.btn-primary {
-  background-color: #55acee;
-  border-color: #3b88c3;
-}
-
-.panel .alert {
-  margin-bottom: 0;
-}
-
-@media (max-width: 1000px) {
-  .navbar-right {
-    display: none;
-  }
+.loading {
+  margin: 20px;
 }
