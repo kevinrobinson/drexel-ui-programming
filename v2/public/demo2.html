@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Drexel UI programming projects</title>
+
+    <!-- Meta-information about the page for browsers -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+
+    <!-- Links to stylesheets and images on the internet that the browser
+    will request and use in showing this HTML page. -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/twitter-demos.css" type="text/css">
+    <link rel="shortcut icon" href="//abs.twimg.com/favicons/favicon.ico" type="image/x-icon">
+
+    <!-- Scripts that are on our site or elsewhere on the internet.  These are downloaded and run as part of this HTML page. -->
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+  </head>
+  <body>
+
+    <!-- HTML that is served directly to the browser.  This is static -->
+    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+      <h1 class="navbar-text">Drexel UI programming projects</h1>
+    </nav>
+    <div class="container content">
+    </div>
+
+
+    <!-- A template can be compiled into a function that takes input data
+    and renders it as a string of HTML.  The browser will ignore this, but
+    our JavaScript code will use it.  -->
+    <script type="text/template" id="tweet-template">
+      <blockquote class="twitter-tweet" align="center">
+        <p><%= tweet.text %></p>
+        <small>
+          @<%= user.screen_name %>
+          <a href="https://twitter.com/<%= user.screen_name %>/status/<%= tweet.id_str %>">
+          <%= tweet.created_at %>
+          </a>
+        </small>
+      </blockquote>
+    </script>
+
+    <!-- Another script that we want the browser to download and run;
+    this one is tagged with `async` so the browser knows it's lower priority -->
+    <script src="//platform.twitter.com/widgets.js"></script>
+
+    <script src="dist/bundle.js"></script>
+  </body>
+</html>
