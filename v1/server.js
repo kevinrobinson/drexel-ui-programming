@@ -2,6 +2,7 @@
 var config  = require('./config');
 var express = require('express');
 var moment = require('moment');
+var fs = require('fs');
 
 
 // Initialize the app and add logging
@@ -10,8 +11,30 @@ var logger = require('morgan');
 app.use(logger('dev'));
 
 
-// This will serve any files in `/public` as-is.
+
+// This handle all requests coming in.
+// If the request is a GET request, it will try to read
+// the files in `/public` into memory synchronously,
+// the write the contents back as the response.
+//
+// Doing this synchronously and buffering the whole file into
+// memory is super inefficient, but shows the essential concept.
+// app.use(function(req, res, next) {
+// 	if (req.method.toLowerCase() === 'get') {
+// 		var path = req.originalUrl;
+// 		res.write(fs.readFileSync('./public/' + path));
+// 		res.end();
+// 		return;
+// 	}
+
+// 	// This means we couldn't handle this request, see if any other registered
+// 	// handlers can handle it.
+// 	next();
+// });
+
+// This is a more efficient way to serve static files using streams.
 app.use(express.static(__dirname + '/public'));
+
 
 
 // Example of dynamic content
@@ -23,6 +46,7 @@ app.get('/hello', function(req, res){
 	res.write('Hello ' + name + '!');
 	res.end();
 });
+
 
 
 // Example of dynamic JSON content

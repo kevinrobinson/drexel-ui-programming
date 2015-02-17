@@ -16,6 +16,41 @@
     <!-- Scripts that are on our site or elsewhere on the internet.  These are downloaded and run as part of this HTML page. -->
     <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js"></script>
+
+
+
+
+
+
+    <style>
+      li {
+        color: blue;
+        display: inline;
+      }
+
+      li.philly {
+        color: red;
+        font-weight: bold;
+        border: 1px solid purple;
+        margin-top: 20px;
+        padding-left: 50px;
+      }
+
+    </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   </head>
   <body>
 
@@ -24,6 +59,13 @@
       <h1 class="navbar-text">Drexel UI programming projects</h1>
     </nav>
     <div class="container content">
+      <h1>Places that got lots of snow</h1>
+      <ul>
+        <li>Boston</li>
+        <li>Alaska</li>
+        <li>Connecticut</li>
+        <li class="philly">not Philadelphia (yet)</li>
+      </ul>
     </div>
 
 
@@ -113,10 +155,14 @@
       }
 
       function main() {
-        searchTweets('kanye')
-          .then(function(response) { return response.statuses; })
-          .then(render);
-      };
+        var tweetsPromise = searchTweets('snow');
+        tweetsPromise.then(function(response) {
+          var tweetTexts = response.statuses.map(function(tweet) {
+            return tweet.text;
+          });
+          $('.content').append(tweetTexts.join("\n"));
+        });
+      }
 
       // This is where it actually starts running, after the browser finishes
       // loading the HTML document.
@@ -126,5 +172,6 @@
     <!-- Another script that we want the browser to download and run;
     this one is tagged with `async` so the browser knows it's lower priority -->
     <script async src="//platform.twitter.com/widgets.js"></script>
+
   </body>
 </html>
