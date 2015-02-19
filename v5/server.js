@@ -53,6 +53,8 @@ app.post('/songs', function(req, res){
 	// will handle parsing it as JSON.
 	var song = req.body;
 
+	console.log(req.body);
+
 	// Add a unique id to the song, so we can refer to it later.
 	// This is something a database or storage service will usually
 	// do for you, so this is just a minimal example to get started.
@@ -133,6 +135,6 @@ app.post('/songs/:id/star', function(req, res){
 
 
 // Start the server
-var server = app.listen(3044, function() {
+var server = app.listen(3055, function() {
   console.log('Listening on port %d', server.address().port);
 });

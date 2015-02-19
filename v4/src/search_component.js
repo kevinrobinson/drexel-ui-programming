@@ -47,11 +47,14 @@ SearchComponent.prototype = {
   // Set up any listeners for UI interactions
   // This listens for the user clicking on 'search'
   bindEvents: function() {
-    $(this.node).on('click', 'a.song', this.onSongClicked.bind(this));
-    $(this.node).on('click', '.add-song', this.onAddSongClicked.bind(this));
+    // $(this.node).on('click', 'a.song', this.onSongClicked.bind(this));
+
 
     // tab
-    $(this.node).on('click', '.song-tab a.close-tab', this.onCloseTab.bind(this));
+    // $(this.node).on('click', '.song-tab a.close-tab', this.onCloseTab.bind(this));
+
+    // add
+    $(this.node).on('click', 'button.add-song', this.onAddSongClicked.bind(this));
 
     // new song form
     $(this.node).on('click', '.new-song a.close-tab', this.onCloseNewSong.bind(this));
@@ -67,45 +70,34 @@ SearchComponent.prototype = {
     this.render();
   },
 
-  // When user interaction occurs, read what they did and
-  // update the state.  Then peform a server request based on that
-  // new state.
-  // onSearchClicked: function() {
-  //   var searchText = $(this.node).find('input.search').val();
-  //   this.setState({ searchText: searchText });
-  //   this.searchAndUpdateState();
-  // },
-
-  // Perform a server request and set up the handler when the response comes
-  // back.
-  // searchAndUpdateState: function() {
-  //   this.setState({ isLoading: true });
-  //   TwitterApi.searchTweets(this.state.searchText)
-  //     .then(this.onServerResponse.bind(this));
-  // },
-
   doRequestSongsAndUpdateState: function() {
     this.setState({ isLoading: true });
     $.ajax('/songs').then(this.onServerResponse.bind(this));
   },
 
+  // Transition the UI from the list of songs to a specific song
   doShowSongTab: function(song) {
     var tabHtml = tabTemplate({ song: song });
     $(this.node).find('.songs').hide();
     $(this.node).append(tabHtml);
   },
 
+  // Transition the UI from a specific song to the list of songs
   doHideSongTab: function() {
     $(this.node).find('.song-tab').remove();
     $(this.node).find('.songs').show();
   },
 
+  // Transition the UI from the list of songs to the form for adding a
+  // new song
   doShowNewSongForm: function() {
     var formHtml = formTemplate();
     $(this.node).find('.songs').hide();
     $(this.node).append(formHtml);
   },
 
+  // Transition the UI from the form for adding a new song back to the
+  // list of songs
   doHideNewSongForm: function() {
     $(this.node).find('.new-song').remove()
     $(this.node).find('.songs').show();
@@ -113,9 +105,9 @@ SearchComponent.prototype = {
 
   readSongFromForm: function() {
     return {
-      title: 'title',
+      title: $(this.node).find('input.title').val(),
       artist: 'artist',
-      youTubeId: 'bar',
+      youTubeId: $(this.node).find('input.youtube-id').val(),
       source: 'foo',
       text: 'text'
     };

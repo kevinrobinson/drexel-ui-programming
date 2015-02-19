@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/kevinrobinson/drexel-ui-programming/v2/node_modules/jquery/dist/jquery.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/kevinrobinson/drexel-ui-programming/v5/node_modules/jquery/dist/jquery.js":[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v2.1.3
  * http://jquery.com/
@@ -9205,7 +9205,7 @@ return jQuery;
 
 }));
 
-},{}],"/kevinrobinson/drexel-ui-programming/v2/node_modules/lodash/index.js":[function(require,module,exports){
+},{}],"/kevinrobinson/drexel-ui-programming/v5/node_modules/lodash/index.js":[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -20451,36 +20451,26 @@ return jQuery;
 }.call(this));
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],"/kevinrobinson/drexel-ui-programming/v2/src/main.js":[function(require,module,exports){
-var $ = require('jquery');
-var SearchComponent = require('./search_component');
-
-// This is the Main module
-// Wait for the document to load.
-// And also wait for the Twitter widget renderer to load.
-$(document).ready(function() {
-  window.twttr.ready(function() {
-    var searchComponent = new SearchComponent(document.querySelector('.content'));
-    searchComponent.start();
-  });
-});
-
-},{"./search_component":"/kevinrobinson/drexel-ui-programming/v2/src/search_component.js","jquery":"/kevinrobinson/drexel-ui-programming/v2/node_modules/jquery/dist/jquery.js"}],"/kevinrobinson/drexel-ui-programming/v2/src/search_component.js":[function(require,module,exports){
+},{}],"/kevinrobinson/drexel-ui-programming/v5/src/app_component.js":[function(require,module,exports){
 var _ = require('lodash');
 var $ = require('jquery');
-var TwitterApi = require('./twitter_api');
+var songsTemplate = require('./songs.tpl');
+var formTemplate = require('./new_song_form.tpl');
+
+
 var merge = function(prev, next) {
   return _.extend({}, prev, next);
 };
 
 
 // This is a minimal component class.  It's similar to what you
-// would find in a React component or Backbone.View.
+// would find in a React component or Backbone.View, but a little bit
+// more minimal and explicit so you can see how it works.
 //
 // This is the constructor, and the methods are defined below.
 // While JavaScript has more flexibility than Java, this is essentially
 // the same as a Java class.
-var SearchComponent = function(node) {
+var AppComponent = function(node) {
   this.node = node;
   this.state = this.initialState();
 };
@@ -20492,13 +20482,17 @@ var SearchComponent = function(node) {
 // translates that into the DOM in the browser.
 //
 // Everything else here is supporting those two pieces.
-SearchComponent.prototype = {
+//
+// This component is starting to get a little too large, and do too
+// many things, so in a production application, we'd probably look at
+// breaking this up a bit more as a next step.
+AppComponent.prototype = {
+  /* CORE COMPONENT METHODS */
   // Define the initial state of the component
   initialState: function() {
     return {
-      searchText: 'kanye',
-      isLoading: false,
-      tweets: []
+      isAddingNewSong: false,
+      songs: []
     };
   },
 
@@ -20506,12 +20500,15 @@ SearchComponent.prototype = {
   start: function() {
     this.bindEvents();
     this.render();
+    this.doRequestSongsAndUpdateState();
   },
 
   // Set up any listeners for UI interactions
-  // This listens for the user clicking on 'search'
   bindEvents: function() {
-    $(this.node).on('click', 'button.search', this.onSearchClicked.bind(this));
+    // Form for adding a new song
+    $(this.node).on('click', 'button.add-song', this.onAddSongClicked.bind(this));
+    $(this.node).on('click', '.new-song a.close-tab', this.onNewSongClose.bind(this));
+    $(this.node).on('click', '.new-song button.save-new-song', this.onSaveClicked.bind(this));
   },
 
   // Update the current state of the component in memory.
@@ -20523,111 +20520,179 @@ SearchComponent.prototype = {
     this.render();
   },
 
-  // When user interaction occurs, read what they did and
-  // update the state.  Then peform a server request based on that
-  // new state.
-  onSearchClicked: function() {
-    var searchText = $(this.node).find('input.search').val();
-    this.setState({ searchText: searchText });
-    this.searchAndUpdateState();
+
+  /* ACTION AND TRANSITION METHODS */
+  // Make a server request for all the songs, and register
+  // a handler to update `state` when we get a response back
+  // from the server.
+  //
+  // See http://api.jquery.com/jquery.ajax/ for more details on
+  // `$.ajax` and how it works.
+  doRequestSongsAndUpdateState: function() {
+    $.ajax('/songs').then(this.onSongsRequestCompleted.bind(this));
   },
 
-  // Perform a server request and set up the handler when the response comes
-  // back.
-  searchAndUpdateState: function() {
-    this.setState({ isLoading: true });
-    TwitterApi.searchTweets(this.state.searchText)
-      .then(this.onServerResponse.bind(this));
+  // This reads in the information that the user has entered into
+  // the form, and returns it as a plain JavaScript map.
+  readSongFromForm: function() {
+    var $formNode = $(this.node).find('.new-song');
+    return {
+      title: $formNode.find('input.title').val(),
+      youTubeId: $formNode.find('input.youtube-id').val(),
+      source: $formNode.find('input.source').val(),
+      text: $formNode.find('input.tab').val()
+    };
   },
 
-  // Handle the server response.
-  onServerResponse: function(response) {
-    this.setState({
-      isLoading: false,
-      tweets: response.statuses
+  // This makes a server request to POST the new song to the server
+  // and save it.
+  postNewSong: function(newSong) {
+    return $.ajax({
+      method: 'post',
+      url: '/songs',
+      contentType: 'application/json; charset=utf-8',
+      data: JSON.stringify(newSong)
     });
   },
 
+
+  /* EVENT HANDLERS */
+  // Handle the server response.  When the response comes back,
+  // update `state` with the new list of songs.
+  onSongsRequestCompleted: function(response) {
+    this.setState({ songs: response.songs });
+  },
+
+  onAddSongClicked: function(event) {
+    event.preventDefault();
+    this.setState({ isAddingNewSong: true });
+  },
+
+  onNewSongClose: function(event) {
+    event.preventDefault();
+    this.setState({ isAddingNewSong: false });
+  },
+
+  // When the user clicks on the `save` button, read in what
+  // they typed in the form, and then save it to the server.
+  // Also add the new song to `state` so the user can see it in the UI.
+  // Failures aren't handled in this code here, this is an important detail
+  // but beyond the scope of this project.
+  onSaveClicked: function(event) {
+    event.preventDefault();
+
+    // Read what the user entered into the form.
+    // This is where we might add validation to make sure what
+    // they entered makes sense (that's not done here).
+    var newSong = this.readSongFromForm();
+
+    // Update the state.
+    var updatedSongs = this.state.songs.concat(newSong);
+    this.setState({ songs: updatedSongs });
+
+    // Make a request to post the new song to the server.
+    // When it's done, then update the UI so we're not adding
+    // a new song anymore.
+    this.postNewSong(newSong).then(this.onNewSongSaved.bind(this));
+  },
+
+  onNewSongSaved: function() {
+    this.setState({ isAddingNewSong: false });
+  },
+
+  /* RENDERING CODE */
   // This is the main function taking the representation of `state`
   // and rendering it as HTML for the user to interact with.
   render: function() {
-    // Render HTML and put it in the DOM.
-    var htmlPieces = [
-      '<input class="search" type="text" value="' + this.state.searchText + '"/>',
-      '<button class="search">search</button>',
-      this.renderLoadingState(),
-      this.renderTweetsHtml(this.state.tweets)
-    ];
+    // Translate the data in `state` to a string of HTML for the
+    // user interface.
+    var htmlPieces = [];
+    if (this.state.isAddingNewSong) {
+      var formHtml = formTemplate();
+      htmlPieces.push(formHtml);
+    } else {
+      songsListHtml = this.renderSongsHtml(this.state.songs);
+      htmlPieces.push(songsListHtml);
+    }
+
+    // Put the HTML on the page in the browser.
     this.node.innerHTML = htmlPieces.join('');
 
-    // Apply some decoration to make Tweets more interactive.
-    // This is idempotent.
-    this.decorateTweets();
+    // Also focus the cursor on the first input element.
+    $(this.node).find('input:first').focus();
   },
 
-  renderLoadingState: function() {
-    return (this.state.isLoading)
-      ? '<div class="loading">Here they come...</div>' : '';
-  },
-
-  // This reaches out to the template stored on the DOM, which isn't ideal.
-  // A build system can help move this out of the DOM and into a compile-time
-  // step.
-  renderTweetsHtml: function(tweets) {
-    var tweetTemplateText = $('#tweet-template').text();
-    var compiledTweetTemplate = _.template(tweetTemplateText);
-    return tweets.map(function(tweet) {
-      return compiledTweetTemplate({
-        user: tweet.user,
-        tweet: tweet
-      });
-    }).join('');
-  },
-
-  // This isn't ideal, reaching out to the global `window` object,
-  // but this is common with third-party widgets.
-  decorateTweets: function() {
-    window.twttr.widgets.load();
+  // This will also render youTubeIds as embedded videos, so
+  // the user can listen to the song while reading the music.
+  // See https://developers.google.com/youtube/player_parameters
+  // for more details if you're curious about how this works.
+  renderSongsHtml: function(songs) {
+    return songsTemplate({ songs: songs });
   }
 };
 
 
-module.exports = SearchComponent;
-},{"./twitter_api":"/kevinrobinson/drexel-ui-programming/v2/src/twitter_api.js","jquery":"/kevinrobinson/drexel-ui-programming/v2/node_modules/jquery/dist/jquery.js","lodash":"/kevinrobinson/drexel-ui-programming/v2/node_modules/lodash/index.js"}],"/kevinrobinson/drexel-ui-programming/v2/src/twitter_api.js":[function(require,module,exports){
+module.exports = AppComponent;
+},{"./new_song_form.tpl":"/kevinrobinson/drexel-ui-programming/v5/src/new_song_form.tpl","./songs.tpl":"/kevinrobinson/drexel-ui-programming/v5/src/songs.tpl","jquery":"/kevinrobinson/drexel-ui-programming/v5/node_modules/jquery/dist/jquery.js","lodash":"/kevinrobinson/drexel-ui-programming/v5/node_modules/lodash/index.js"}],"/kevinrobinson/drexel-ui-programming/v5/src/main.js":[function(require,module,exports){
+/*
+This is the main module for browserify.  This is where our JavaScript
+program will start.
+
+The full sequence of how this happens in the browser is that the browser:
+  1. Downloads the HTML file
+  2. Sees the tag for <script src="dist/bundle.js"></script>
+  3. Requests that script file from the server and downloads it.
+  4. Runs that script.
+  5. The way that browserify has bundled up the JavaScript means
+     that the JavaScript program starts running here.
+*/
+
+
+// Pull in some dependencies.
 var $ = require('jquery');
+var AppComponent = require('./app_component');
 
-module.exports = TwitterApi = {
-  // Wraps up querying the server-side proxy, which
-  // is for working around CORS restrictions in the browser.
-  request: function(method, endpoint, params) {
-    return $.ajax({
-      url: '/proxy',
-      data: {
-        method: method,
-        endpoint: endpoint,
-        params: params
-      }
-    })
-  },
 
-  friendIds: function(username, limit) {
-    return TwitterApi.request('get', 'friends/ids', {
-      screen_name: 'krob',
-      count: limit
-    });
-  },
+// Define the starting point for the JavaScript application
+function startApplication() {
+  var appComponent = new AppComponent(document.querySelector('.content'));
+  appComponent.start();
+}
 
-  usersLookup: function(userIds) {
-    return TwitterApi.request('get', 'users/lookup', {
-      user_id: userIds.join()
-    });
-  },
 
-  searchTweets: function(query) {
-    return TwitterApi.request('get', 'search/tweets', {
-      q: query,
-      result_type: 'mixed'
-    });
-  }
+// Register with the browser that we want to wait until the HTML document
+// has been fully downloaded and is `ready`.  When it is, call the `startApplication`
+// function to start the JavaScript application.
+$(document).ready(startApplication);
+
+},{"./app_component":"/kevinrobinson/drexel-ui-programming/v5/src/app_component.js","jquery":"/kevinrobinson/drexel-ui-programming/v5/node_modules/jquery/dist/jquery.js"}],"/kevinrobinson/drexel-ui-programming/v5/src/new_song_form.tpl":[function(require,module,exports){
+var _ = require('lodash');
+module.exports = function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='<div class="new-song"><h3>Add a new song!</h3><a class="close-tab" href="/songs">close</a><table><tr><td>Title:</td><td><input class="title" type="text"></td></tr><tr><td>YouTube ID:</td><td><input class="youtube-id" type="text"></td></tr><tr><td>Source:</td><td><input class="source" type="text"></td></tr><tr><td>Tab:</td><td><textarea class="tab"></textarea></td></tr></table><button class="save-new-song">Save</button></div>';
+}
+return __p;
 };
-},{"jquery":"/kevinrobinson/drexel-ui-programming/v2/node_modules/jquery/dist/jquery.js"}]},{},["/kevinrobinson/drexel-ui-programming/v2/src/main.js"]);
+
+},{"lodash":"/kevinrobinson/drexel-ui-programming/v5/node_modules/lodash/index.js"}],"/kevinrobinson/drexel-ui-programming/v5/src/songs.tpl":[function(require,module,exports){
+var _ = require('lodash');
+module.exports = function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='<div class="songs"><h3>Songs <button class="add-song">add</button></h3><ul class="songs">';
+ songs.map(function(song) { 
+__p+='<li><iframe class="ytplayer" type="text/html" width="64" height="64" src="http://www.youtube.com/embed/'+
+((__t=( song.youTubeId ))==null?'':__t)+
+'" frameborder="0"></iframe><span class="title">'+
+((__t=( song.title ))==null?'':__t)+
+'</span> <a href="'+
+((__t=( song.source ))==null?'':__t)+
+'">source</a></li>';
+ }); 
+__p+='</ul></div>';
+}
+return __p;
+};
+
+},{"lodash":"/kevinrobinson/drexel-ui-programming/v5/node_modules/lodash/index.js"}]},{},["/kevinrobinson/drexel-ui-programming/v5/src/main.js"]);
