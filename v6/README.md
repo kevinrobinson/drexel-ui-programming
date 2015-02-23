@@ -28,8 +28,8 @@ curl -X GET -i http://localhost:3055/songs
 # Post a new song
 curl -H "Content-Type: application/json" -X POST -i http://localhost:3055/songs -d '{"title":"Blackbird","artist":"The Beatles","youTubeId":"BrxZhWCAuQw","source":"http://tabs.ultimate-guitar.com/b/beatles/blackbird_ver5_tab.htm","text":"blah... music... blah..."}'
 
-# Star a song
-# This will star the song with the id `seeded_1`:
+# Star a song (works as a counter, think Facebook "Likes")
+# This will add 1 star the song with the id `seeded_1`:
 curl -X POST -i http://localhost:3055/songs/seeded_1/star
 ```
 
