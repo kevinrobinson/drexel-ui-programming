@@ -131,20 +131,25 @@ AppComponent.prototype = {
     // This is where we might add validation to make sure what
     // they entered makes sense (that's not done here).
     var newSong = this.readSongFromForm();
-
-    // Update the state.
-    var updatedSongs = this.state.songs.concat(newSong);
-    this.setState({ songs: updatedSongs });
+    // Don't update the state until we receive a response from the server.
+    // Here would be a good place to add some feedback to the user regarding server communication (i.e. spinning wheel)
 
     // Make a request to post the new song to the server.
     // When it's done, then update the UI so we're not adding
     // a new song anymore.
     this.postNewSong(newSong).then(this.onNewSongSaved.bind(this));
+    // Optional:
+    // To handle the case of a failure communicating with the server, instead of .then() you can register .done() and .fail() callbacks.
+    // Documentation here:
+    // http://api.jquery.com/category/deferred-object/
   },
 
-  onNewSongSaved: function() {
-    this.setState({ isAddingNewSong: false });
+  onNewSongSaved: function(newSong) {
+    // Update the state with the response from the server.
+    var updatedSongs = this.state.songs.concat(newSong);
+    this.setState({ isAddingNewSong: false, songs: updatedSongs });
   },
+
 
   /* RENDERING CODE */
   // This is the main function taking the representation of `state`
