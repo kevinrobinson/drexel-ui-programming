@@ -66,6 +66,20 @@ AppComponent.prototype = {
     this.render();
   },
 
+  // We want to enforce that the list of `songs` in `state` is
+  // sorted.  We could do this at read time (ie, whenever we read
+  // `this.state` we could sort it, or we could do this at write time
+  // (ie, whenever updating the list of songs).
+  // Since we want `state` to represent what will be shown to the user
+  // in the UI, let's do it at write time and ensure that the list of
+  // songs is always ordered.
+  //
+  // To help enforce this, we'll add a method called `setStateForSongs`
+  // that does this.  And then we'll update places where we use `setState`
+  // directly to change the list of songs to use this new method instead.
+  setStateForSongs: function(songs) {
+    // TODO
+  },
 
   /* ACTION AND TRANSITION METHODS */
   // Make a server request for all the songs, and register
