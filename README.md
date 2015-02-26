@@ -7,6 +7,7 @@ Support materials for Drexel CS338 UI programming class.
 - [v4](v4) - project from Wednesday class
 - [v5](v5) - basis for assignment (a more developed version of the Wednesday project)
 - [v6](v6) - basis for assignment with guidelines of where to work in comments
+- ["State" and "Render"](state-and-render.md) - diagram and notes about keeping UI `state` separate, and using a `render` method up update what the user sees
 
 ### Cloning this repository
 To run these projects locally, first you'll need to clone this git repository to your local computer.  For instructions on how to clone a git repository, check out Github: [https://help.github.com/articles/fetching-a-remote/#clone](https://help.github.com/articles/fetching-a-remote/#clone).  As an example, I have a folder on my laptop called `/home/krobinson/github`.  I'll open a terminal window, `cd` to that folder, and then run `git clone git@github.com:kevinrobinson/drexel-ui-programming.git`.  That will clone the repository from GitHub and put in in the `/home/krobinson/github/drexel-ui-programming` folder.
